@@ -1,0 +1,17 @@
+{
+    "name": "Matimand Nivasi Vidyalay",
+    "short_name": "School App",
+    "description": "Student Management System",
+    "start_url": "./",
+    "display": "standalone",
+    "background_color": "#4338ca",
+    "theme_color": "#4338ca",
+    "icons": [
+      {
+        "src": "https://i.ibb.co/zV2cXpgs/new-logo.jpg",
+        "sizes": "512x512",
+        "type": "image/jpeg",
+        "purpose": "any maskable"
+      }
+    ]
+  }
