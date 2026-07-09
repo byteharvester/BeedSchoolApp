@@ -2,63 +2,80 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <!-- Native App Viewport (Handles iPhone Notches and stops pinch-to-zoom) -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Matimand Nivasi Vidyalay</title>
+  <title>SMS</title>
+
+  <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#4338ca">
+  <link rel="icon" type="image/jpeg" href="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png">
+  <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png">
+  
+  <!-- Bypass Cross-Origin Image Blocks -->
+  <meta name="referrer" content="no-referrer">
+  
+  <!-- iOS PWA Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   
   <style>
-    body { 
-      margin: 0; 
-      padding: 0; 
-      height: 100vh; 
-      background-color: #4338ca; /* Indigo-700 matching your app */
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      justify-content: center; 
-      color: white; 
-      font-family: system-ui, -apple-system, sans-serif;
-      text-align: center;
+    /* The "Anti-Bounce" & Native Fullscreen CSS */
+    body, html { 
+        margin: 0; 
+        padding: 0; 
+        width: 100%; 
+        height: 100%; 
+        overflow: hidden; /* Stops double-scrollbars */
+        background-color: #4338ca; /* Matches your app's Indigo header */
+        overscroll-behavior-y: none; /* PREVENTS PULL-TO-REFRESH BOUNCE */
+        -webkit-tap-highlight-color: transparent; /* Removes blue tap highlight */
     }
-    img { 
-      width: 90px; 
-      height: 90px; 
-      border-radius: 20px; 
-      margin-bottom: 25px; 
-      box-shadow: 0 8px 20px rgba(0,0,0,0.3); 
-      background: white;
-      padding: 4px;
+    
+    iframe { 
+        width: 100%; 
+        height: 100%; 
+        border: none; 
+        /* Respects iPhone Safe Areas so UI doesn't hide behind the notch */
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+        box-sizing: border-box;
+        background-color: #f8fafc; /* Matches your slate-50 background */
     }
-    .loader { 
-      border: 4px solid rgba(255,255,255,0.2); 
-      border-top: 4px solid white; 
-      border-radius: 50%; 
-      width: 35px; 
-      height: 35px; 
-      animation: spin 1s linear infinite; 
-      margin-bottom: 20px; 
-    }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    h2 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: 0.5px; }
-    p { font-size: 13px; color: #a5b4fc; margin-top: 8px; font-weight: 500; }
   </style>
 </head>
 <body>
 
-  <!-- Beautiful Loading UI -->
-  <img src="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png" alt="School Logo">
-  <div class="loader"></div>
-  <h2>Authenticating...</h2>
-  <p>Connecting securely to Google Workspace</p>
+  <!-- Maximum Permission iFrame -->
+  <iframe 
+    id="app-frame"
+    src="https://script.google.com/macros/s/AKfycbxHHbBNOiYJs5SIr-NNQCPf4m3NQrLNAUoYuultnG4LuzUC6hDoBAz6vMlC0pGAHqHP/exec" 
+    allow="geolocation; microphone; camera; clipboard-read; clipboard-write; fullscreen">
+  </iframe>
 
   <script>
-    // 🚀 THE MAGIC REDIRECT: Bypasses the iframe cookie block!
-    // After 1 second of showing the beautiful logo, it securely launches the real app.
-    
-    setTimeout(() => {
-      window.location.replace("https://script.google.com/macros/s/AKfycbxHHbBNOiYJs5SIr-NNQCPf4m3NQrLNAUoYuultnG4LuzUC6hDoBAz6vMlC0pGAHqHP/exec");
-    }, 1200);
-  </script>
+    // 1. Service Worker Registration (For PWA Caching & Installability)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js');
+      });
+    }
 
+    // 2. Hardware Back-Button Protection (Android)
+    // Stops the app from instantly closing if they accidentally hit the back arrow.
+    window.onload = function() {
+        window.history.pushState({ page: 1 }, "", "");
+        
+        window.onpopstate = function(event) {
+            // When they hit back, show a confirmation dialog
+            if(confirm("Do you want to exit the school app?")) {
+                window.history.back(); // Let them leave
+            } else {
+                window.history.pushState({ page: 1 }, "", ""); // Trap them safely inside
+            }
+        };
+    };
+  </script>
 </body>
 </html>
