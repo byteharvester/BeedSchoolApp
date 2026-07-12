@@ -1,9 +1,9 @@
 /**
- * Matimand Nivasi Vidyalay - Service Worker
+ * MySchool - Service Worker
  * Cache-first with auto-update
  */
 
-var CACHE_NAME = 'mnv-pwa-v2.1.0';
+var CACHE_NAME = 'myschool-v2.2.0';
 var ASSETS = [
   '/',
   '/index.html',
