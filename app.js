@@ -1,5 +1,5 @@
 /**
- * Matimand Nivasi Vidyalay - Enterprise PWA
+ * MySchool - Enterprise PWA
  * Smart Splash Screen with Google Verification Integration
  */
 (function() {
@@ -40,7 +40,7 @@
     msgInterval: null,
     timeoutTimer: null,
     verifyTimer: null,
-    version: '2.1.0'
+    version: '2.2.0'
   };
 
   // ============================================================
@@ -51,14 +51,39 @@
     verifying: 'Verifying Google Account...',
     verified: '✅ Google Verified!',
     loading: 'Loading Dashboard...',
-    ready: '✅ Welcome!',
+    ready: '✅ Welcome to MySchool!',
     error: '❌ Connection error'
   };
+
+  // ============================================================
+  // LOGO ERROR HANDLING
+  // ============================================================
+  function setupLogoFallback() {
+    var logo = document.getElementById('splash-logo');
+    if (!logo) return;
+    
+    logo.addEventListener('error', function() {
+      this.classList.add('error');
+      var fallback = this.nextElementSibling;
+      if (fallback && fallback.classList.contains('logo-fallback')) {
+        fallback.style.display = 'flex';
+      }
+    });
+    
+    logo.addEventListener('load', function() {
+      this.classList.remove('error');
+      var fallback = this.nextElementSibling;
+      if (fallback && fallback.classList.contains('logo-fallback')) {
+        fallback.style.display = 'none';
+      }
+    });
+  }
 
   // ============================================================
   // INITIALIZATION
   // ============================================================
   function init() {
+    setupLogoFallback();
     registerServiceWorker();
     checkForUpdate();
     startClockAndGreeting();
@@ -113,9 +138,9 @@
         if (doc && doc.body) {
           var bodyText = doc.body.innerText || '';
           
-          // Check if Google verification is complete
           var hasAuthScreen = bodyText.indexOf('Verifying Google Account') !== -1;
-          var hasAppContent = bodyText.indexOf('Matimand Nivasi Vidyalay') !== -1 ||
+          var hasAppContent = bodyText.indexOf('RukhmaiGovind') !== -1 ||
+                             bodyText.indexOf('Matimand') !== -1 ||
                              bodyText.indexOf('Students') !== -1 ||
                              bodyText.indexOf('Staff') !== -1 ||
                              bodyText.indexOf('Dashboard') !== -1 ||
@@ -129,11 +154,8 @@
             return;
           }
         }
-      } catch(e) {
-        // Cross-origin - normal during verification
-      }
+      } catch(e) {}
 
-      // Fallback: After 12 seconds, assume verification is done
       if (checkCount >= 12) {
         STATE.isGoogleVerified = true;
         updateStatus(STATUS_MESSAGES.verified, 'verified');
@@ -147,9 +169,7 @@
     if (!DOM.loadingStatus) return;
     
     var dot = DOM.loadingStatus.querySelector('.status-dot');
-    var text = DOM.loadingStatus.querySelector('.status-text-content') || DOM.loadingStatus;
     
-    // If we need to keep the dot separate
     if (dot) {
       dot.className = 'status-dot';
       if (type === 'verified') dot.classList.add('success');
@@ -157,21 +177,11 @@
       else dot.classList.add('pulse');
     }
     
-    // Update text - keep the dot
-    if (typeof text === 'string') {
-      DOM.loadingStatus.innerHTML = '<span class="status-dot pulse"></span> ' + message;
-    } else {
-      // Find or create text span
-      var textSpan = DOM.loadingStatus.querySelector('.status-text-content');
-      if (!textSpan) {
-        textSpan = document.createElement('span');
-        textSpan.className = 'status-text-content';
-        DOM.loadingStatus.appendChild(textSpan);
-      }
+    var textSpan = DOM.loadingStatus.querySelector('.status-text-content');
+    if (textSpan) {
       textSpan.textContent = message;
     }
     
-    // Update class
     DOM.loadingStatus.className = 'status-text';
     if (type === 'verified') DOM.loadingStatus.classList.add('verified');
     else if (type === 'loading') DOM.loadingStatus.classList.add('loading');
@@ -180,7 +190,6 @@
   function handleGoogleVerified() {
     if (STATE.isLoaded) return;
     
-    // Progress to 95%
     if (STATE.progress < 95) {
       STATE.progress = 95;
       updateUIProgress(STATE.progress);
@@ -329,7 +338,6 @@
     DOM.loadingMsg.textContent = 'Ready.';
     updateStatus(STATUS_MESSAGES.ready, 'verified');
     
-    // Show iframe
     DOM.iframe.classList.add('visible');
     
     setTimeout(function() {
