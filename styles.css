@@ -177,31 +177,58 @@ iframe.visible {
   pointer-events: none;
 }
 
-.logo-container {
+/* Logo */
+.logo-wrapper {
   position: relative;
-  display: inline-block;
-  margin-bottom: 1.25rem;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 1.25rem;
+  flex-shrink: 0;
 }
 
-.logo-img {
-  width: 90px;
-  height: 90px;
-  border-radius: 22px;
-  background: #ffffff;
-  padding: 6px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+.logo-wrapper img {
+  width: 100%;
+  height: 100%;
   object-fit: contain;
-  position: relative;
-  z-index: 1;
+  border-radius: 24px;
+  background: #ffffff;
+  padding: 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  display: block;
 }
 
-.logo-glow {
+.logo-wrapper .logo-fallback {
+  display: none;
+  width: 100%;
+  height: 100%;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #4338ca, #6366f1);
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 2.5rem;
+  font-weight: 800;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.logo-wrapper img.error {
+  display: none;
+}
+.logo-wrapper img.error + .logo-fallback {
+  display: flex;
+}
+
+.logo-ring {
   position: absolute;
   inset: -6px;
   border-radius: 28px;
-  background: conic-gradient(from 0deg, transparent, var(--accent), transparent, var(--accent), transparent);
+  background: conic-gradient(from 0deg, transparent, var(--accent), transparent, var(--accent-light), transparent);
   animation: spin 4s linear infinite;
   opacity: 0.5;
+  pointer-events: none;
 }
 
 @keyframes spin {
@@ -262,12 +289,7 @@ iframe.visible {
   color: var(--text-muted);
 }
 
-#loading-message {
-  transition: opacity 0.3s ease;
-  letter-spacing: 0.3px;
-}
-
-/* Status Text - Shows Google Verification status */
+/* Status */
 .status-text {
   margin-top: 1rem;
   padding: 0.5rem 1rem;
@@ -313,16 +335,11 @@ iframe.visible {
 
 .status-text.verified {
   color: var(--accent-light);
-  border-color: rgba(59, 130, 246, 0.3);
 }
 
 .status-text.verified .status-dot {
   background: var(--success);
   animation: none;
-}
-
-.status-text.loading {
-  color: var(--text-muted);
 }
 
 /* Footer */
@@ -442,17 +459,16 @@ iframe.visible {
   transform: scale(0.95);
 }
 
-.btn-retry:hover {
-  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-}
-
 /* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (max-width: 420px) {
   .splash-card { padding: 2rem 1.5rem; }
   .clock { font-size: 3rem; }
-  .logo-img { width: 76px; height: 76px; }
+  .logo-wrapper { width: 80px; height: 80px; }
+  .logo-wrapper img { padding: 6px; border-radius: 20px; }
+  .logo-wrapper .logo-fallback { font-size: 2rem; border-radius: 20px; }
+  .logo-ring { inset: -4px; border-radius: 24px; }
   .school-title { font-size: 1.1rem; }
   .splash-content { max-height: 600px; }
 }
@@ -460,7 +476,10 @@ iframe.visible {
 @media (max-height: 640px) {
   .splash-header { padding-top: 0; }
   .clock { font-size: 2.6rem; }
-  .logo-img { width: 64px; height: 64px; }
+  .logo-wrapper { width: 70px; height: 70px; }
+  .logo-wrapper img { padding: 5px; border-radius: 18px; }
+  .logo-wrapper .logo-fallback { font-size: 1.6rem; border-radius: 18px; }
+  .logo-ring { inset: -4px; border-radius: 22px; }
   .splash-card { padding: 1.5rem 1.25rem; }
   .school-subtitle { margin-bottom: 1rem; }
   .progress-info { font-size: 0.6rem; }
@@ -468,13 +487,18 @@ iframe.visible {
   .splash-footer .footer-brand { font-size: 0.6rem; }
 }
 
+@media (max-width: 360px) {
+  .logo-wrapper { width: 64px; height: 64px; }
+  .logo-wrapper img { padding: 4px; border-radius: 16px; }
+  .logo-wrapper .logo-fallback { font-size: 1.4rem; border-radius: 16px; }
+  .logo-ring { inset: -3px; border-radius: 20px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .logo-glow, .status-dot.pulse, .update-badge { animation: none; }
+  .logo-ring, .status-dot.pulse, .update-badge, .update-icon { animation: none; }
   .progress-fill { transition: none; }
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --glass-bg: rgba(255,255,255,0.05);
-  }
+  .logo-wrapper img { background: #ffffff; }
 }
