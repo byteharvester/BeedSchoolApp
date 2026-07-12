@@ -3,24 +3,109 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Matimand Nivasi Vidyalay</title>
+  <title>MySchool</title>
   
   <!-- PWA Meta Tags -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#312e81">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png">
+  
+  <!-- ====== MULTIPLE ICON SOURCES FOR ALL DEVICES ====== -->
+  
+  <!-- Standard Favicon -->
+  <link rel="icon" type="image/png" sizes="16x16" href="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png">
+  
+  <!-- Apple Touch Icon (iOS) -->
+  <link rel="apple-touch-icon" sizes="57x57" href="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png">
+  <link rel="apple-touch-icon" sizes="167x167" href="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png">
+  
+  <!-- Android Chrome -->
+  <link rel="icon" type="image/png" sizes="192x192" href="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png">
+  
+  <!-- Windows / Microsoft -->
+  <meta name="msapplication-TileImage" content="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png">
+  <meta name="msapplication-TileColor" content="#312e81">
+  
+  <!-- Safari Pinned Tab -->
+  <link rel="mask-icon" href="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png" color="#312e81">
   
   <link rel="stylesheet" href="styles.css">
   
-  <!-- Preconnect for faster loading -->
   <link rel="preconnect" href="https://script.google.com">
   <link rel="dns-prefetch" href="https://script.google.com">
   <link rel="preconnect" href="https://raw.githubusercontent.com">
   
-  <meta name="version" content="2.1.0">
-  <meta name="description" content="Matimand Nivasi Vidyalay - School Management System">
+  <meta name="version" content="2.2.0">
+  <meta name="description" content="MySchool - School Management System">
+  
+  <style>
+    /* Critical CSS for first paint */
+    body { margin:0; background:#312e81; overflow:hidden; height:100dvh; }
+    #splash-screen { 
+      position:fixed; inset:0; z-index:1000; 
+      background:linear-gradient(145deg,#312e81,#4c1d95); 
+      display:flex; align-items:center; justify-content:center;
+      padding:calc(2rem + env(safe-area-inset-top)) 1.5rem calc(2rem + env(safe-area-inset-bottom)); 
+      transition:opacity .8s ease,transform .8s ease; 
+      will-change:opacity,transform; 
+    }
+    #splash-screen.fade-out { opacity:0; transform:scale(1.04); pointer-events:none; }
+    #splash-screen.hidden { display:none; }
+    #app-container { position:fixed; inset:0; z-index:10; background:#f1f5f9; }
+    iframe { width:100%; height:100%; border:none; display:block; background:#f1f5f9; opacity:0; transition:opacity .5s ease; }
+    iframe.visible { opacity:1; }
+    .hidden { display:none !important; }
+    
+    /* Logo container - ensures consistent sizing */
+    .logo-wrapper {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 1.25rem;
+      flex-shrink: 0;
+    }
+    .logo-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 24px;
+      background: #ffffff;
+      padding: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      display: block;
+    }
+    .logo-wrapper .logo-fallback {
+      display: none;
+      width: 100%;
+      height: 100%;
+      border-radius: 24px;
+      background: linear-gradient(135deg, #4338ca, #6366f1);
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 2.5rem;
+      font-weight: 800;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .logo-wrapper img.error + .logo-fallback {
+      display: flex;
+    }
+    .logo-wrapper img.error {
+      display: none;
+    }
+  </style>
 </head>
 <body>
 
@@ -28,7 +113,7 @@
   <div id="splash-screen">
     <div class="splash-content">
       
-      <!-- Header with Clock -->
+      <!-- Header -->
       <div class="splash-header">
         <div id="greeting-text" class="greeting">Good Morning</div>
         <div id="clock-text" class="clock">--:--</div>
@@ -37,18 +122,29 @@
 
       <!-- Main Card -->
       <div class="splash-card">
-        <div class="logo-container">
-          <img src="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png" alt="School Logo" class="logo-img" id="splash-logo">
-          <div class="logo-glow"></div>
+        <!-- LOGO -->
+        <div class="logo-wrapper">
+          <img 
+            src="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png" 
+            alt="MySchool" 
+            id="splash-logo"
+            width="100" 
+            height="100"
+            decoding="async"
+            loading="eager"
+            onerror="this.classList.add('error'); this.nextElementSibling.style.display='flex';"
+          >
+          <div class="logo-fallback">MS</div>
+          <div class="logo-ring"></div>
         </div>
         
-        <h1 class="school-title">Matimand Nivasi Vidyalay</h1>
+        <h1 class="school-title">RukhmaiGovind Matimand Nivasi Vidyalay</h1>
         <p class="school-subtitle">Empowering Education</p>
         
         <!-- Progress -->
         <div class="progress-wrap">
           <div class="progress-track">
-            <div id="progress-fill" class="progress-fill" style="transform: scaleX(0);"></div>
+            <div id="progress-fill" class="progress-fill"></div>
           </div>
           <div class="progress-info">
             <span id="loading-message">Initializing...</span>
@@ -56,17 +152,17 @@
           </div>
         </div>
         
-        <!-- Status - This shows Google verification status -->
+        <!-- Status -->
         <div id="loading-status" class="status-text">
           <span class="status-dot pulse"></span>
-          Connecting to server...
+          <span class="status-text-content">Connecting to server...</span>
         </div>
       </div>
 
       <!-- Footer -->
       <div class="splash-footer">
         <div class="footer-brand">Powered by <strong>ByteHarvester</strong></div>
-        <div class="footer-version">v2.1.0</div>
+        <div class="footer-version">v2.2.0</div>
         <div id="update-badge" class="update-badge hidden">
           <span class="update-icon">⟳</span> Update Available
         </div>
