@@ -1,11 +1,13 @@
 /**
- * PWA Architecture - Core Controller
- * Engineered for minimal layout thrashing and O(1) DOM updates.
+ * Matimand Nivasi Vidyalay - Enterprise PWA
+ * Features: Auto-update, Performance, Offline Support
  */
 (function() {
   'use strict';
 
-  // 1. Cached DOM Nodes (Query once, use forever)
+  // ==========================================
+  // DOM CACHE
+  // ==========================================
   const DOM = {
     splash: document.getElementById('splash-screen'),
     iframe: document.getElementById('app-frame'),
@@ -18,159 +20,264 @@
     errorScreen: document.getElementById('error-screen'),
     btnRetry: document.getElementById('btn-retry'),
     errorTitle: document.getElementById('error-title'),
-    errorMsg: document.getElementById('error-message')
+    errorMsg: document.getElementById('error-message'),
+    updateBadge: document.getElementById('update-badge')
   };
 
-  // 2. Application State
+  // ==========================================
+  // STATE
+  // ==========================================
   const STATE = {
     isLoaded: false,
     progress: 0,
-    maxSimulatedProgress: 92, // Holds at 92% until iframe fires 'load'
-    loadingInterval: null,
-    messageInterval: null,
+    maxProgress: 92,
+    loadAttempts: 0,
+    maxAttempts: 5,
+    clockTimer: null,
+    loadInterval: null,
+    msgInterval: null,
     timeoutTimer: null,
-    clockTimer: null
+    version: '2.0.0'
   };
 
-  // 3. Dynamic UX Messages
-  const LOAD_MESSAGES = [
-    "Checking network...",
-    "Securing connection...",
-    "Loading School Portal...",
-    "Fetching HR Records...",
-    "Preparing Dashboard..."
-  ];
+  // ==========================================
+  // AUTO-UPDATE SYSTEM
+  // ==========================================
+  function checkForUpdate() {
+    // Check if service worker supports updates
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(function(registration) {
+        // Check for updates every 60 seconds
+        setInterval(function() {
+          registration.update();
+        }, 60000);
+        
+        // Listen for update found
+        registration.addEventListener('updatefound', function() {
+          var newWorker = registration.installing;
+          newWorker.addEventListener('statechange', function() {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // New update available
+              showUpdateAvailable();
+            }
+          });
+        });
+      }).catch(function() {});
+    }
+  }
+
+  function showUpdateAvailable() {
+    var badge = DOM.updateBadge;
+    if (badge) {
+      badge.classList.remove('hidden');
+      badge.innerHTML = '<span class="update-icon">⟳</span> Update Available - Tap to Refresh';
+      badge.style.cursor = 'pointer';
+      badge.onclick = function() {
+        if (confirm('A new version is available. Update now?')) {
+          window.location.reload();
+        }
+      };
+    }
+  }
 
   // ==========================================
-  // INITIALIZATION & TIMING
+  // INITIALIZATION
   // ==========================================
   function init() {
     registerServiceWorker();
+    checkForUpdate();
     startClockAndGreeting();
     startLoadingSimulation();
     setupNetworkListeners();
     setupIframeListener();
+    checkIframeLoaded();
+    trackPerformance();
   }
 
+  // ==========================================
+  // CLOCK & GREETING
+  // ==========================================
   function startClockAndGreeting() {
-    const updateTime = () => {
-      const now = new Date();
-      
-      // Update Clock (HH:MM)
+    function update() {
+      var now = new Date();
       DOM.clock.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-      
-      // Update Date
       DOM.date.textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
       
-      // Update Greeting
-      const hour = now.getHours();
-      if (hour < 12) DOM.greeting.textContent = "Good Morning";
-      else if (hour < 17) DOM.greeting.textContent = "Good Afternoon";
-      else DOM.greeting.textContent = "Good Evening";
+      var hour = now.getHours();
+      var greeting = 'Good Evening';
+      if (hour < 12) greeting = 'Good Morning';
+      else if (hour < 17) greeting = 'Good Afternoon';
+      DOM.greeting.textContent = greeting;
       
-      STATE.clockTimer = setTimeout(updateTime, 60000 - (now.getSeconds() * 1000)); // Sync to the minute
-    };
-    updateTime(); // Fire immediately
+      STATE.clockTimer = setTimeout(update, 60000 - (now.getSeconds() * 1000));
+    }
+    update();
   }
 
   // ==========================================
-  // PROGRESS BAR LOGIC (Hardware Accelerated)
+  // LOADING SIMULATION
   // ==========================================
   function startLoadingSimulation() {
-    let msgIndex = 0;
-    
-    // Cycle Messages
-    STATE.messageInterval = setInterval(() => {
+    var messages = [
+      'Checking network...',
+      'Securing connection...',
+      'Loading School Portal...',
+      'Fetching HR Records...',
+      'Preparing Dashboard...'
+    ];
+    var msgIndex = 0;
+
+    STATE.msgInterval = setInterval(function() {
       if (STATE.isLoaded) return;
-      DOM.loadingMsg.textContent = LOAD_MESSAGES[msgIndex % LOAD_MESSAGES.length];
+      DOM.loadingMsg.textContent = messages[msgIndex % messages.length];
       msgIndex++;
     }, 2500);
 
-    // Simulate Network Progress (Eases out as it gets closer to 90%)
-    const simulate = () => {
+    function simulate() {
       if (STATE.isLoaded) return;
-      if (STATE.progress < STATE.maxSimulatedProgress) {
-        // Fast at first, slows down near the end
-        const increment = Math.max(0.5, (STATE.maxSimulatedProgress - STATE.progress) * 0.1);
+      if (STATE.progress < STATE.maxProgress) {
+        var increment = Math.max(0.5, (STATE.maxProgress - STATE.progress) * 0.08);
         STATE.progress += increment;
         updateUIProgress(STATE.progress);
-        STATE.loadingInterval = requestAnimationFrame(simulate);
+        STATE.loadInterval = requestAnimationFrame(simulate);
       }
-    };
+    }
     requestAnimationFrame(simulate);
 
-    // 20-second Timeout Catch
-    STATE.timeoutTimer = setTimeout(() => {
+    STATE.timeoutTimer = setTimeout(function() {
       if (!STATE.isLoaded) {
-        DOM.loadingMsg.textContent = "Still trying to connect...";
-        DOM.loadingMsg.style.color = "#f59e0b"; // Warning amber
+        DOM.loadingMsg.textContent = 'Still connecting...';
+        DOM.loadingMsg.style.color = '#f59e0b';
+        // Try to reload iframe
+        retryIframe();
       }
     }, 20000);
   }
 
   function updateUIProgress(val) {
-    const p = Math.floor(val);
+    var p = Math.floor(val);
     DOM.loadingPercent.textContent = p + '%';
-    // GPU Accelerated scaleX (Values 0.0 to 1.0)
-    DOM.progressFill.style.transform = `scaleX(${val / 100})`;
+    DOM.progressFill.style.transform = 'scaleX(' + (val / 100) + ')';
   }
 
   // ==========================================
-  // IFRAME HANDLERS
+  // IFRAME HANDLING
   // ==========================================
+  function checkIframeLoaded() {
+    try {
+      var doc = DOM.iframe.contentDocument || DOM.iframe.contentWindow.document;
+      if (doc && doc.readyState === 'complete') {
+        handleIframeLoad();
+      }
+    } catch(e) {}
+  }
+
   function setupIframeListener() {
     if (!navigator.onLine) return handleOffline();
 
-    DOM.iframe.addEventListener('load', () => {
-      STATE.isLoaded = true;
-      
-      // Clear all timers
-      cancelAnimationFrame(STATE.loadingInterval);
-      clearInterval(STATE.messageInterval);
-      clearTimeout(STATE.timeoutTimer);
+    DOM.iframe.addEventListener('load', handleIframeLoad);
+    DOM.iframe.addEventListener('error', handleIframeError);
 
-      // Snap progress to 100%
-      updateUIProgress(100);
-      DOM.loadingMsg.textContent = "Ready.";
-      
-      // Wait 400ms for psychological satisfaction, then fade out
-      setTimeout(() => {
-        DOM.splash.classList.add('fade-out');
-        
-        // Remove splash from DOM entirely after transition to free up memory
-        setTimeout(() => {
-          DOM.splash.remove(); 
-          clearTimeout(STATE.clockTimer); // Stop clock logic since it's removed
-        }, 850); 
-      }, 400);
-    });
+    // Periodic check
+    var checkInterval = setInterval(function() {
+      if (STATE.isLoaded) {
+        clearInterval(checkInterval);
+        return;
+      }
+      checkIframeLoaded();
+    }, 2000);
 
-    // Fallback if iframe fails silently
-    DOM.iframe.addEventListener('error', handleOffline);
+    setTimeout(function() { clearInterval(checkInterval); }, 30000);
+  }
+
+  function handleIframeLoad() {
+    if (STATE.isLoaded) return;
+    STATE.isLoaded = true;
+    
+    cleanup();
+    updateUIProgress(100);
+    DOM.loadingMsg.textContent = 'Ready.';
+    
+    setTimeout(function() {
+      DOM.splash.classList.add('fade-out');
+      setTimeout(function() {
+        DOM.splash.remove();
+        clearTimeout(STATE.clockTimer);
+        // Enable iframe interactions
+        DOM.iframe.style.pointerEvents = 'auto';
+      }, 850);
+    }, 400);
+  }
+
+  function handleIframeError() {
+    STATE.loadAttempts++;
+    if (STATE.loadAttempts < STATE.maxAttempts) {
+      DOM.loadingMsg.textContent = 'Retrying connection... (' + STATE.loadAttempts + '/' + STATE.maxAttempts + ')';
+      setTimeout(retryIframe, 2000);
+    } else {
+      handleOffline();
+    }
+  }
+
+  function retryIframe() {
+    var src = DOM.iframe.src;
+    DOM.iframe.src = '';
+    setTimeout(function() {
+      DOM.iframe.src = src;
+    }, 500);
+  }
+
+  function cleanup() {
+    cancelAnimationFrame(STATE.loadInterval);
+    clearInterval(STATE.msgInterval);
+    clearTimeout(STATE.timeoutTimer);
   }
 
   // ==========================================
-  // ERROR & NETWORK HANDLING
+  // NETWORK & ERROR HANDLING
   // ==========================================
   function setupNetworkListeners() {
-    window.addEventListener('online', () => {
-      if (!STATE.isLoaded) window.location.reload();
+    window.addEventListener('online', function() {
+      if (!STATE.isLoaded) {
+        DOM.loadingMsg.textContent = 'Back online! Reconnecting...';
+        retryIframe();
+      }
     });
-    window.addEventListener('offline', handleOffline);
     
-    DOM.btnRetry.addEventListener('click', () => {
+    window.addEventListener('offline', handleOffline);
+    DOM.btnRetry.addEventListener('click', function() {
       window.location.reload();
     });
   }
 
   function handleOffline() {
-    DOM.errorTitle.textContent = navigator.onLine ? "Server Error" : "No Internet";
-    DOM.errorMsg.textContent = navigator.onLine 
-      ? "Google Apps Script refused to connect. Please try again." 
-      : "You are offline. Please check your WiFi or cellular data.";
-    
+    var isOnline = navigator.onLine;
+    DOM.errorTitle.textContent = isOnline ? 'Server Error' : 'No Internet';
+    DOM.errorMsg.textContent = isOnline 
+      ? 'Unable to reach the school server. Please try again.' 
+      : 'You are offline. Please check your connection.';
     DOM.errorScreen.classList.remove('hidden');
     DOM.splash.classList.add('fade-out');
+  }
+
+  // ==========================================
+  // PERFORMANCE TRACKING
+  // ==========================================
+  function trackPerformance() {
+    if ('performance' in window && 'measure' in performance) {
+      // Track First Paint
+      var paintObserver = new PerformanceObserver(function(list) {
+        var entries = list.getEntries();
+        entries.forEach(function(entry) {
+          if (entry.name === 'first-paint') {
+            console.log('First Paint:', entry.startTime.toFixed(0), 'ms');
+          }
+        });
+      });
+      try {
+        paintObserver.observe({ entryTypes: ['paint'] });
+      } catch(e) {}
+    }
   }
 
   // ==========================================
@@ -178,14 +285,26 @@
   // ==========================================
   function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-      // Defer registration until window loads to prioritize First Paint
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(err => console.error('SW Error:', err));
+      window.addEventListener('load', function() {
+        navigator.serviceWorker.register('sw.js', { scope: '/' })
+          .then(function(registration) {
+            console.log('SW registered:', registration.scope);
+          })
+          .catch(function(err) {
+            console.log('SW registration failed:', err);
+          });
       });
     }
   }
 
-  // Boot Application
-  init();
+  // ==========================================
+  // BOOT
+  // ==========================================
+  // Only start if DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 
 })();
