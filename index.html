@@ -2,56 +2,84 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Updating MySchool...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>SMI - School Monitoring Interface</title>
+  
+  <!-- PWA Requirements -->
+  <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#312e81">
   
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(145deg, #312e81, #4c1d95);
-      color: white;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      text-align: center;
-      padding: 20px;
-    }
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid rgba(255, 255, 255, 0.3);
-      border-top: 4px solid white;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 20px;
-    }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-  </style>
+  <!-- iOS Native App Meta Tags (Hides Safari URL Bar) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SMI">
+  <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png">
 
-  <script>
-    // 1. Force unregister the old Service Worker so the app stops loading the old cached files
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for(let registration of registrations) {
-          registration.unregister();
-        }
-      });
-    }
-
-    // 2. Instantly redirect to the NEW React App URL
-    // Note: I used the URL from your new repository based on our previous steps
-    setTimeout(function() {
-      window.location.replace("https://byteharvester.github.io/school-management-app/");
-    }, 1500); // 1.5 second delay just so they see the "Updating" message
-  </script>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div class="spinner"></div>
-  <h2>Updating System...</h2>
-  <p style="opacity: 0.8; font-size: 14px;">Moving you to the new, faster BeedSchool App.</p>
+
+  <!-- Hidden Iframe for Google Apps Script -->
+  <div id="app-container">
+    <iframe 
+      id="app-frame" 
+      src="https://script.google.com/macros/s/AKfycbxHHbBNOiYJs5SIr-NNQCPf4m3NQrLNAUoYuultnG4LuzUC6hDoBAz6vMlC0pGAHqHP/exec" 
+      allow="geolocation; microphone; camera">
+    </iframe>
+  </div>
+
+  <!-- Smart Splash Screen -->
+  <div id="splash-screen">
+    <div class="splash-content">
+      <div class="splash-header">
+        <div class="greeting" id="greeting-text">Good Morning</div>
+        <div class="clock" id="clock-text">--:--</div>
+        <div class="date" id="date-text">Loading date...</div>
+      </div>
+
+      <div class="splash-card">
+        <div class="logo-wrapper">
+          <img id="splash-logo" src="https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png" alt="SMI Logo">
+          <div class="logo-fallback">SMI</div>
+          <div class="logo-ring"></div>
+        </div>
+        
+        <h1 class="school-title">SMI</h1>
+        <h2 class="school-subtitle">School Monitoring Interface</h2>
+
+        <div class="progress-wrap">
+          <div class="progress-track">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+          <div class="progress-info">
+            <span id="loading-message">Initializing...</span>
+            <span id="loading-percent">0%</span>
+          </div>
+        </div>
+
+        <div class="status-text loading" id="loading-status">
+          <span class="status-dot pulse"></span>
+          <span class="status-text-content">Connecting to server...</span>
+        </div>
+      </div>
+
+      <div class="splash-footer">
+        <div class="footer-brand">Secured by <strong>Google Workspace</strong></div>
+        <div class="footer-version">v3.1.0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Screen -->
+  <div id="error-screen" class="hidden">
+    <div class="error-card">
+      <div class="error-icon">⚠️</div>
+      <h2 id="error-title">Connection Error</h2>
+      <p id="error-message">Unable to reach the server.</p>
+      <button id="btn-retry" class="btn-retry">Try Again</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
 </body>
 </html>
