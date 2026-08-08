@@ -33,19 +33,19 @@
   </style>
 
   <script>
-    // 1. Force unregister the old Service Worker so the app stops loading the old cached files
+    // 1. Force unregister the old Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function(registrations) {
         for(let registration of registrations) {
-          registration.unregister();[cite: 3]
+          registration.unregister();
         }
       });
     }
 
     // 2. Instantly redirect to the NEW App URL
     setTimeout(function() {
-      window.location.replace("https://byteharvester.github.io/school-management-app/");[cite: 3]
-    }, 1500); // 1.5 second delay just so they see the "Updating" message[cite: 3]
+      window.location.href = "https://byteharvester.github.io/school-management-app/";
+    }, 1500); 
   </script>
 </head>
 <body>
