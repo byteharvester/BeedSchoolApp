@@ -1,33 +1,22 @@
-/**
- * MySchool - Service Worker
- * Cache-first with auto-update
- */
-
-var CACHE_NAME = 'myschool-v2.2.0';
+var CACHE_NAME = 'smi-v3.1.0';
 var ASSETS = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/app.js',
-  '/manifest.json',
+  '/school-management-app/',
+  '/school-management-app/index.html',
+  '/school-management-app/styles.css',
+  '/school-management-app/app.js',
+  '/school-management-app/manifest.json',
   'https://raw.githubusercontent.com/byteharvester/BeedSchoolApp/main/logo.png'
 ];
 
-// Install
 self.addEventListener('install', function(event) {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(function(cache) {
-        return cache.addAll(ASSETS);
-      })
-      .catch(function(err) {
-        console.error('Cache error:', err);
-      })
+    caches.open(CACHE_NAME).then(function(cache) {
+      return cache.addAll(ASSETS);
+    })
   );
 });
 
-// Activate
 self.addEventListener('activate', function(event) {
   event.waitUntil(
     caches.keys().then(function(cacheNames) {
@@ -44,53 +33,17 @@ self.addEventListener('activate', function(event) {
   );
 });
 
-// Fetch
 self.addEventListener('fetch', function(event) {
   var request = event.request;
   
-  // Skip Google Apps Script
+  // Never cache the Google Apps Script API calls
   if (request.url.includes('script.google.com')) {
     return;
   }
 
-  if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request)
-        .then(function(response) {
-          var clone = response.clone();
-          caches.open(CACHE_NAME).then(function(cache) {
-            cache.put(request, clone);
-          });
-          return response;
-        })
-        .catch(function() {
-          return caches.match('/index.html');
-        })
-    );
-    return;
-  }
-
   event.respondWith(
-    caches.match(request)
-      .then(function(cached) {
-        if (cached) {
-          // Update in background
-          fetch(request).then(function(response) {
-            if (response && response.status === 200) {
-              caches.open(CACHE_NAME).then(function(cache) {
-                cache.put(request, response);
-              });
-            }
-          }).catch(function() {});
-          return cached;
-        }
-        return fetch(request);
-      })
-      .catch(function() {
-        if (request.destination === 'image') {
-          return new Response('', { status: 404 });
-        }
-        return new Response('Offline', { status: 503 });
-      })
+    caches.match(request).then(function(cached) {
+      return cached || fetch(request);
+    })
   );
 });
